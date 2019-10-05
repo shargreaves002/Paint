@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -8,13 +9,14 @@ import java.awt.event.ActionListener;
 public class ButtonPanel extends JPanel implements ActionListener, ChangeListener {
     private DrawingArea drawingArea;
     private JColorChooser colorChooser;
-    private String[] shapes = {"Rectangle", "Oval", "Line"};
 
     ButtonPanel(DrawingArea drawingArea) {
         this.drawingArea = drawingArea;
 
         colorChooser = new JColorChooser(Color.BLACK);
         colorChooser.getSelectionModel().addChangeListener(this);
+        colorChooser.setPreviewPanel(new JPanel());
+        String[] shapes = {"Rectangle", "Oval", "Line"};
         JComboBox<String> shape = new JComboBox<>(shapes);
         shape.addActionListener(this);
         add(colorChooser);

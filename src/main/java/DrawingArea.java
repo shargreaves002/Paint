@@ -7,7 +7,6 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
 class DrawingArea extends JPanel {
-    private final static int AREA_SIZE = 400;
     private ArrayList<Object> shapes = new ArrayList<>();
     private Rectangle rectangle;
     private Ellipse2D oval;
@@ -26,7 +25,7 @@ class DrawingArea extends JPanel {
     @Override
     public Dimension getPreferredSize() {
         return isPreferredSizeSet() ?
-                super.getPreferredSize() : new Dimension(AREA_SIZE, AREA_SIZE);
+                super.getPreferredSize() : new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 350);
     }
 
     void toggleIsFilled(){
