@@ -5,10 +5,10 @@ import java.awt.event.*;
 public class Window extends JFrame implements ActionListener, WindowListener {
     private JTabbedPane pane = new JTabbedPane();
 
-    Window(String title){
-        super(title);
+    Window(){
+        super("Doodle Board");
         addWindowListener(this);
-        setSize(400, 550);
+        setSize(Toolkit.getDefaultToolkit().getScreenSize());
         setLayout(new BorderLayout());
         setResizable(false);
         setLocationRelativeTo(null);
@@ -36,23 +36,13 @@ public class Window extends JFrame implements ActionListener, WindowListener {
         removeCanvas.getAccessibleContext().setAccessibleDescription("Delete Canvas");
 
         JMenu edit = new JMenu ("Edit");
-        JMenu changeBackground = new JMenu("Change Background");
+        final JMenuItem changeBackground = new JMenuItem("Change Background");
 
-        JMenuItem black = new JMenuItem("Black");
-        black.addActionListener(new ActionListener() {
+        changeBackground.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                changeBackground(Color.black);
+                changeBackground(JColorChooser.showDialog(null, "Choose Background Color", Color.WHITE));
             }
         });
-
-        JMenuItem white = new JMenuItem("White");
-        white.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                changeBackground(Color.white);
-            }
-        });
-        changeBackground.add(black);
-        changeBackground.add(white);
 
         edit.add(changeBackground);
         JMenuBar menuBar = new JMenuBar();

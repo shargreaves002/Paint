@@ -31,7 +31,7 @@ class DrawingArea extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        //  Custom code to paint all the Rectangles from the List
+        //  paint all the Rectangles from the List
 
         Color foreground = g.getColor();
 
@@ -89,8 +89,7 @@ class DrawingArea extends JPanel {
         }
 
         public void mouseReleased(MouseEvent e) {
-            if (shape.width != 0 || shape.height != 0)
-            {
+            if (shape.width != 0 || shape.height != 0) {
                 addRectangle(shape, e.getComponent().getForeground());
             }
 

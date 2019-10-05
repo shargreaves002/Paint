@@ -1,41 +1,42 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ButtonPanel extends JPanel implements ActionListener {
+public class ButtonPanel extends JPanel implements ActionListener, ChangeListener {
     private DrawingArea drawingArea;
+    private JColorChooser colorChooser;
 
     ButtonPanel(DrawingArea drawingArea) {
         this.drawingArea = drawingArea;
 
-        add( createButton("	", Color.BLACK) );
-        add( createButton("	", Color.RED) );
-        add( createButton("	", Color.GREEN) );
-        add( createButton("	", Color.BLUE) );
-        add( createButton("	", Color.ORANGE) );
-        add( createButton("	", Color.YELLOW) );
-        add( createButton("Clear Drawing", null) );
-        add( createButton("Fill", null));
+        colorChooser = new JColorChooser(Color.BLACK);
+        colorChooser.getSelectionModel().addChangeListener(this);
+
+        add(colorChooser);
+        add( createButton("Clear Drawing") );
+        add( createButton("Fill"));
     }
 
-    private JButton createButton(String text, Color background) {
+    private JButton createButton(String text) {
         JButton button = new JButton( text );
-        button.setBackground( background );
         button.addActionListener( this );
 
         return button;
     }
 
     public void actionPerformed(ActionEvent e) {
-        JButton button = (JButton)e.getSource();
-
-        if ("Clear Drawing".equals(e.getActionCommand())){
+        if (e.getActionCommand().equals("Clear Drawing")){
             drawingArea.clear();
         } else if(e.getActionCommand().equals("Fill")) {
             drawingArea.toggleIsFilled();
-        } else {
-            drawingArea.setForeground(button.getBackground());
         }
+    }
+
+    public void stateChanged(ChangeEvent e) {
+        Color newColor = colorChooser.getColor();
+        drawingArea.setForeground(newColor);
     }
 }
