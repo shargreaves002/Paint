@@ -16,6 +16,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
         add( createButton("	", Color.ORANGE) );
         add( createButton("	", Color.YELLOW) );
         add( createButton("Clear Drawing", null) );
+        add( createButton("Fill", null));
     }
 
     private JButton createButton(String text, Color background) {
@@ -29,9 +30,12 @@ public class ButtonPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JButton button = (JButton)e.getSource();
 
-        if ("Clear Drawing".equals(e.getActionCommand()))
+        if ("Clear Drawing".equals(e.getActionCommand())){
             drawingArea.clear();
-        else
-            drawingArea.setForeground( button.getBackground() );
+        } else if(e.getActionCommand().equals("Fill")) {
+            drawingArea.toggleIsFilled();
+        } else {
+            drawingArea.setForeground(button.getBackground());
+        }
     }
 }

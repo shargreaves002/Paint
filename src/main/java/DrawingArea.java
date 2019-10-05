@@ -8,6 +8,7 @@ class DrawingArea extends JPanel {
     private final static int AREA_SIZE = 400;
     private ArrayList<ColoredRectangle> coloredRectangles = new ArrayList<ColoredRectangle>();
     private Rectangle shape;
+    private boolean isFilled = false;
 
     DrawingArea() {
         setBackground(Color.WHITE);
@@ -23,6 +24,9 @@ class DrawingArea extends JPanel {
                 super.getPreferredSize() : new Dimension(AREA_SIZE, AREA_SIZE);
     }
 
+    void toggleIsFilled(){
+        isFilled = !isFilled;
+    }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -36,7 +40,11 @@ class DrawingArea extends JPanel {
         for (ColoredRectangle cr : coloredRectangles) {
             g.setColor( cr.getForeground() );
             Rectangle r = cr.getRectangle();
-            g.drawRect(r.x, r.y, r.width, r.height);
+            if (cr.isFilled) {
+                g.fillRect(r.x, r.y, r.width, r.height);
+            } else {
+                g.drawRect(r.x, r.y, r.width, r.height);
+            }
         }
 
         //  Paint the Rectangle as the mouse is being dragged
@@ -52,6 +60,7 @@ class DrawingArea extends JPanel {
         //  Add the Rectangle to the List so it can be repainted
 
         ColoredRectangle cr = new ColoredRectangle(color, rectangle);
+        if (isFilled) cr.isFilled = true;
         coloredRectangles.add( cr );
         repaint();
     }
