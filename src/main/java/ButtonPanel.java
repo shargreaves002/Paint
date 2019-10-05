@@ -8,15 +8,14 @@ import java.awt.event.ActionListener;
 public class ButtonPanel extends JPanel implements ActionListener, ChangeListener {
     private DrawingArea drawingArea;
     private JColorChooser colorChooser;
-    private String[] shapes = {"Rectangle", "Oval"};
-
-    private JComboBox<String> shape = new JComboBox<>(shapes);
+    private String[] shapes = {"Rectangle", "Oval", "Line"};
 
     ButtonPanel(DrawingArea drawingArea) {
         this.drawingArea = drawingArea;
 
         colorChooser = new JColorChooser(Color.BLACK);
         colorChooser.getSelectionModel().addChangeListener(this);
+        JComboBox<String> shape = new JComboBox<>(shapes);
         shape.addActionListener(this);
         add(colorChooser);
         add(shape);
@@ -30,20 +29,17 @@ public class ButtonPanel extends JPanel implements ActionListener, ChangeListene
         return button;
     }
 
-    /*void getShape (){
-        shape.getSelectedItem();
-    }*/
-
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("Clear Drawing")){
             drawingArea.clear();
         } else if(e.getActionCommand().equals("Fill")) {
             drawingArea.toggleIsFilled();
         }
-
-        JComboBox cb = (JComboBox) e.getSource();
-        String newShape = (String) cb.getSelectedItem();
-        drawingArea.updateShape(newShape);
+        if (e.getSource().getClass().toString().equals("class javax.swing.JComboBox")) {
+            JComboBox cb = (JComboBox) e.getSource();
+            String newShape = (String) cb.getSelectedItem();
+            drawingArea.updateShape(newShape);
+        }
     }
 
     public void stateChanged(ChangeEvent e) {
