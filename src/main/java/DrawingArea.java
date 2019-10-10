@@ -15,6 +15,7 @@ class DrawingArea extends JPanel {
     private String newShape = "Rectangle";
     private boolean dragging = false;
     private Point prevPoint;
+    private int stroke = 1;
 
     DrawingArea() {
         setBackground(Color.WHITE);
@@ -38,12 +39,15 @@ class DrawingArea extends JPanel {
         this.newShape = newShape;
     }
 
+    void updateStroke(int stroke){
+        this.stroke = stroke;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Color foreground = g.getColor();
         g.setColor( Color.BLACK );
-
         //Draws each shape stored in the array of shapes
 
         for (Object shape : shapes) {
@@ -52,27 +56,33 @@ class DrawingArea extends JPanel {
                     ColoredRectangle cr = (ColoredRectangle) shape;
                     g.setColor(cr.getForeground());
                     Rectangle r = cr.getRectangle();
-                    if (cr.isFilled) {
+                    if (cr.getIsFilled()) {
                         g.fillRect(r.x, r.y, r.width, r.height);
                     } else {
-                        g.drawRect(r.x, r.y, r.width, r.height);
+                        Graphics2D g2 = (Graphics2D) g;
+                        g2.setStroke(new BasicStroke(cr.getStroke()));
+                        g2.drawRect(r.x, r.y, r.width, r.height);
                     }
                     break;
                 case "class ColoredOval":
                     ColoredOval co = (ColoredOval) shape;
                     g.setColor(co.getForeground());
                     Ellipse2D o = co.getOval();
-                    if (co.isFilled) {
+                    if (co.getIsFilled()) {
                         g.fillOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
                     } else {
-                        g.drawOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
+                        Graphics2D g2 = (Graphics2D) g;
+                        g2.setStroke(new BasicStroke(co.getStroke()));
+                        g2.drawOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
                     }
                     break;
                 case "class ColoredLine":
                     ColoredLine cl = (ColoredLine) shape;
                     g.setColor(cl.getForeground());
+                    Graphics2D g2 = (Graphics2D) g;
                     Line2D l = cl.getLine();
-                    g.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
+                    g2.setStroke(new BasicStroke(cl.getStroke()));
+                    g2.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
                     break;
             }
         }
@@ -82,38 +92,41 @@ class DrawingArea extends JPanel {
         if (rectangle != null) {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(foreground);
+            g2d.setStroke(new BasicStroke(stroke));
             g2d.draw(rectangle);
         }
 
         if (oval != null){
             Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(foreground);
+            g2d.setStroke(new BasicStroke(stroke));
             g2d.draw(oval);
         }
 
         if (line != null){
             Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(foreground);
+            g2d.setStroke(new BasicStroke(stroke));
             g2d.draw(line);
         }
     }
 
     private void addRectangle(Rectangle rectangle, Color color) {
-        ColoredRectangle cr = new ColoredRectangle(color, rectangle);
-        if (isFilled) cr.isFilled = true;
+        ColoredRectangle cr = new ColoredRectangle(color, rectangle, isFilled, stroke);
+        //if (isFilled) cr.isFilled = true;
         shapes.add(cr);
         repaint();
     }
 
     private void addOval(Ellipse2D oval, Color color) {
-        ColoredOval co = new ColoredOval(color, oval);
-        if (isFilled) co.isFilled = true;
+        ColoredOval co = new ColoredOval(color, oval, isFilled, stroke);
+        //if (isFilled) co.isFilled = true;
         shapes.add(co);
         repaint();
     }
 
     private void addLine(Line2D line, Color color) {
-        ColoredLine cl = new ColoredLine(color, line);
+        ColoredLine cl = new ColoredLine(color, line, stroke);
         shapes.add(cl);
         repaint();
     }
@@ -197,9 +210,5 @@ class DrawingArea extends JPanel {
                     dragging = false;
             }
         }
-    }
-
-    boolean getIsFilled(){
-        return isFilled;
     }
 }

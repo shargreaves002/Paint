@@ -25,6 +25,11 @@ public class ButtonPanel extends JPanel implements ActionListener, ChangeListene
         add(createButton("Clear Drawing") );
         add(fill);
         fill.addActionListener(this);
+        Integer[] strokes = new Integer[30];
+        for (int x = 1; x <= 30; x++) strokes[x-1] = x;
+        JComboBox<Integer> stroke = new JComboBox<>(strokes);
+        stroke.addActionListener(this);
+        add(stroke);
     }
 
     private JButton createButton(String text) {
@@ -42,8 +47,13 @@ public class ButtonPanel extends JPanel implements ActionListener, ChangeListene
         }
         if (e.getSource().getClass().toString().equals("class javax.swing.JComboBox")) {
             JComboBox cb = (JComboBox) e.getSource();
-            String newShape = (String) cb.getSelectedItem();
-            drawingArea.updateShape(newShape);
+            if (cb.getSelectedItem() instanceof String) {
+                String newShape = (String) cb.getSelectedItem();
+                drawingArea.updateShape(newShape);
+            } else {
+                int newStroke = (int) cb.getSelectedItem();
+                drawingArea.updateStroke(newStroke);
+            }
         }
     }
 
