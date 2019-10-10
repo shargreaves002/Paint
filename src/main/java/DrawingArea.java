@@ -13,6 +13,8 @@ class DrawingArea extends JPanel {
     private Line2D line;
     private boolean isFilled = false;
     private String newShape = "Rectangle";
+    private boolean dragging = false;
+    private Point prevPoint;
 
     DrawingArea() {
         setBackground(Color.WHITE);
@@ -97,8 +99,6 @@ class DrawingArea extends JPanel {
     }
 
     private void addRectangle(Rectangle rectangle, Color color) {
-        //  Add the Rectangle to the List so it can be repainted
-
         ColoredRectangle cr = new ColoredRectangle(color, rectangle);
         if (isFilled) cr.isFilled = true;
         shapes.add(cr);
@@ -138,27 +138,38 @@ class DrawingArea extends JPanel {
                 case "Line":
                     line = new Line2D.Double();
                     break;
+                case "Brush":
+                    if (dragging) return;
+                    prevPoint = startPoint;
+                    dragging = true;
             }
         }
 
         public void mouseDragged(MouseEvent e) {
-            int x = Math.min(startPoint.x, e.getX());
-            int y = Math.min(startPoint.y, e.getY());
-            int width = Math.abs(startPoint.x - e.getX());
-            int height = Math.abs(startPoint.y - e.getY());
+                int x = Math.min(startPoint.x, e.getX());
+                int y = Math.min(startPoint.y, e.getY());
+                int width = Math.abs(startPoint.x - e.getX());
+                int height = Math.abs(startPoint.y - e.getY());
 
-            switch (newShape) {
-                case "Rectangle":
-                    rectangle.setBounds(x, y, width, height);
-                    break;
-                case "Oval":
-                    oval.setFrame(x, y, width, height);
-                    break;
-                case "Line":
-                    line.setLine(startPoint, e.getPoint());
-                    break;
-            }
+                switch (newShape) {
+                    case "Rectangle":
+                        rectangle.setBounds(x, y, width, height);
+                        break;
+                    case "Oval":
+                        oval.setFrame(x, y, width, height);
+                        break;
+                    case "Line":
+                        line.setLine(startPoint, e.getPoint());
+                        break;
+                    case "Brush":
+                        if (!dragging) return;
+                        Point point = e.getPoint();
 
+                        line = new Line2D.Double(prevPoint, point);
+                        addLine(line, e.getComponent().getForeground());
+                        prevPoint = point;
+                        break;
+                }
             repaint();
         }
 
@@ -182,7 +193,13 @@ class DrawingArea extends JPanel {
                         line = null;
                     }
                     break;
+                case "Brush":
+                    dragging = false;
             }
         }
+    }
+
+    boolean getIsFilled(){
+        return isFilled;
     }
 }
