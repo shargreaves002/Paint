@@ -8,41 +8,63 @@ public class Window extends JFrame implements ActionListener, WindowListener {
     Window(){
         super("Doodle Board");
         addWindowListener(this);
-        setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        setSize(new Dimension((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth(), ((int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() - 75)));
         setLayout(new BorderLayout());
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-            SwingUtilities.updateComponentTreeUI(this);
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
         } catch(Exception ex) {
             ex.printStackTrace();
         }
+        makeMenuBar();
 
-        //file menu button
-        JMenu file = new JMenu("File");
+        //set up the drawing pane
+        this.add(pane);
+        createStartingCanvas();
+        pack();
+    }
 
-        //new canvas button
-        JMenuItem newCanvas = new JMenuItem("New Canvas", KeyEvent.VK_T);
-        newCanvas.setActionCommand("new");
-        newCanvas.addActionListener(this);
-        newCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_MASK));
-        newCanvas.getAccessibleContext().setAccessibleDescription("New Canvas");
+    private void makeMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu file = makeFileMenu();
+        JMenu edit = makeEditMenu();
 
-        //remove canvas button
-        JMenuItem removeCanvas = new JMenuItem("Delete Canvas", KeyEvent.VK_F);
-        removeCanvas.setActionCommand("remove");
-        removeCanvas.addActionListener(this);
-        removeCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_MASK));
-        removeCanvas.getAccessibleContext().setAccessibleDescription("Delete Canvas");
+        menuBar.add(file);
+        menuBar.add(edit);
+        this.setJMenuBar(menuBar);
+    }
 
-        //edit menu button
-        JMenu edit = new JMenu ("Edit");
+    private JMenu makeEditMenu() {
+        JMenu edit = new JMenu("Edit");
 
         //change background color button
         JMenuItem changeBackground = new JMenuItem("Change Background");
         changeBackground.setActionCommand("setbg");
         changeBackground.addActionListener(this);
+
+        edit.add(changeBackground);
+        return edit;
+    }
+
+    private JMenu makeFileMenu() {
+        JMenu file = new JMenu("File");
+        //new canvas button
+        JMenuItem newCanvas = new JMenuItem("New Canvas", KeyEvent.VK_T);
+        newCanvas.addActionListener((ActionEvent e) -> makeCanvas());
+        newCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK));
+        newCanvas.getAccessibleContext().setAccessibleDescription("New Canvas");
+
+        //remove canvas button
+        JMenuItem removeCanvas = new JMenuItem("Delete Canvas", KeyEvent.VK_F);
+        removeCanvas.addActionListener((ActionEvent e) -> removeCanvas());
+        removeCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK));
+        removeCanvas.getAccessibleContext().setAccessibleDescription("Delete Canvas");
 
         //next button
         JMenuItem next = new JMenuItem("Next Canvas");
@@ -54,20 +76,12 @@ public class Window extends JFrame implements ActionListener, WindowListener {
         previous.setActionCommand("previous");
         previous.addActionListener(this);
 
-        //add all the buttons to the menu bar
-        JMenuBar menuBar = new JMenuBar();
         file.add(newCanvas);
         file.add(removeCanvas);
         file.add(next);
         file.add(previous);
-        menuBar.add(file);
-        menuBar.add(edit);
-        edit.add(changeBackground);
-        this.setJMenuBar(menuBar);
 
-        //set up the drawing pane
-        this.add(pane);
-        createStartingCanvas();
+        return file;
     }
 
     private void makeCanvas(){
@@ -77,7 +91,7 @@ public class Window extends JFrame implements ActionListener, WindowListener {
             if (pane.getTitleAt(i).equals(name)) isThere = true;
         }
         if (name != null && !name.equals("") && !isThere){
-            Canvas canvas = new Canvas(name);
+            Canvas canvas = new Canvas(name, 500, 500);
             pane.addTab(name, canvas);
             pane.setSelectedIndex(pane.getTabCount() - 1);
         } else if (name != null && !isThere){
@@ -90,8 +104,8 @@ public class Window extends JFrame implements ActionListener, WindowListener {
     }
 
     private void createStartingCanvas() {
-        Canvas canvas = new Canvas("New Art");
-        pane.addTab("New Art", canvas);
+        Canvas canvas = new Canvas("New Art", 200, 200);
+        pane.addTab(canvas.getName(), canvas);
         pane.setSelectedIndex(0);
     }
 
@@ -105,19 +119,12 @@ public class Window extends JFrame implements ActionListener, WindowListener {
     }
 
     private void changeBackground(Color color){
-        int index = pane.getSelectedIndex();
-        pane.getComponentAt(index).getComponentAt(50, 50).setBackground(color);
+        ((Canvas) pane.getComponentAt(pane.getSelectedIndex())).getDrawingArea().setBackground(color);
     }
 
     public void actionPerformed(ActionEvent e) {
         String action = e.getActionCommand();
         switch (action){
-            case "new":
-                makeCanvas();
-                break;
-            case "remove":
-                removeCanvas();
-                break;
             case "setbg":
                 changeBackground(JColorChooser.showDialog(null, "Choose Background Color", Color.WHITE));
                 break;

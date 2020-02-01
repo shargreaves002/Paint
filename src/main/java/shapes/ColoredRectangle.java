@@ -1,31 +1,33 @@
+package shapes;
+
 import java.awt.*;
 
-class ColoredRectangle {
+public class ColoredRectangle {
     private Color foreground;
     private Rectangle rectangle;
     private boolean isFilled;
     private int stroke;
 
-    ColoredRectangle(Color foreground, Rectangle rectangle, boolean isFilled, int stroke) {
+    public ColoredRectangle(Color foreground, Rectangle rectangle, boolean isFilled, int stroke) {
         this.foreground = foreground;
         this.rectangle = rectangle;
         this.isFilled = isFilled;
         this.stroke = stroke;
     }
 
-    Color getForeground() {
+    public Color getForeground() {
         return foreground;
     }
 
-    Rectangle getRectangle() {
+    public Rectangle getRectangle() {
         return rectangle;
     }
 
-    boolean getIsFilled(){
+    public boolean getIsFilled(){
         return isFilled;
     }
 
-    int getStroke(){
+    public int getStroke(){
         return stroke;
     }
 }

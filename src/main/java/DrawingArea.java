@@ -1,3 +1,5 @@
+import shapes.ColoredShape;
+
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
@@ -7,28 +9,22 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
 class DrawingArea extends JPanel {
-    private ArrayList<Object> shapes = new ArrayList<>();
-    private Rectangle rectangle;
-    private Ellipse2D oval;
-    private Line2D line;
+    private ArrayList<ColoredShape<? extends Shape>> shapes = new ArrayList<>();
+    private Shape shape;
     private boolean isFilled = false;
     private String newShape = "Rectangle";
     private boolean dragging = false;
     private Point prevPoint;
     private int stroke = 1;
 
-    DrawingArea() {
+    DrawingArea(int x, int y) {
         setBackground(Color.WHITE);
 
         MyMouseListener ml = new MyMouseListener();
         addMouseListener(ml);
         addMouseMotionListener(ml);
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-        return isPreferredSizeSet() ?
-                super.getPreferredSize() : new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 350);
+        setPreferredSize(new Dimension(x, y));
+        setMaximumSize(new Dimension(x, y));
     }
 
     void toggleIsFilled(){
@@ -50,84 +46,53 @@ class DrawingArea extends JPanel {
         g.setColor( Color.BLACK );
         //Draws each shape stored in the array of shapes
 
-        for (Object shape : shapes) {
-            switch (shape.getClass().toString()) {
-                case "class ColoredRectangle":
-                    ColoredRectangle cr = (ColoredRectangle) shape;
-                    g.setColor(cr.getForeground());
-                    Rectangle r = cr.getRectangle();
-                    if (cr.getIsFilled()) {
-                        g.fillRect(r.x, r.y, r.width, r.height);
-                    } else {
-                        Graphics2D g2 = (Graphics2D) g;
-                        g2.setStroke(new BasicStroke(cr.getStroke()));
-                        g2.drawRect(r.x, r.y, r.width, r.height);
-                    }
-                    break;
-                case "class ColoredOval":
-                    ColoredOval co = (ColoredOval) shape;
-                    g.setColor(co.getForeground());
-                    Ellipse2D o = co.getOval();
-                    if (co.getIsFilled()) {
-                        g.fillOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
-                    } else {
-                        Graphics2D g2 = (Graphics2D) g;
-                        g2.setStroke(new BasicStroke(co.getStroke()));
-                        g2.drawOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
-                    }
-                    break;
-                case "class ColoredLine":
-                    ColoredLine cl = (ColoredLine) shape;
-                    g.setColor(cl.getForeground());
-                    Graphics2D g2 = (Graphics2D) g;
-                    Line2D l = cl.getLine();
-                    g2.setStroke(new BasicStroke(cl.getStroke()));
-                    g2.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
-                    break;
-            }
-        }
+        this.paintList(g);
 
         //  Paint the shape as the mouse is being dragged
 
-        if (rectangle != null) {
+        if (shape != null) {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(foreground);
-            g2d.setStroke(new BasicStroke(stroke));
-            g2d.draw(rectangle);
-        }
-
-        if (oval != null){
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setColor(foreground);
-            g2d.setStroke(new BasicStroke(stroke));
-            g2d.draw(oval);
-        }
-
-        if (line != null){
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setColor(foreground);
-            g2d.setStroke(new BasicStroke(stroke));
-            g2d.draw(line);
+            g2d.setStroke(new BasicStroke(stroke, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+            g2d.draw(shape);
         }
     }
 
-    private void addRectangle(Rectangle rectangle, Color color) {
-        ColoredRectangle cr = new ColoredRectangle(color, rectangle, isFilled, stroke);
-        //if (isFilled) cr.isFilled = true;
-        shapes.add(cr);
-        repaint();
+    private void paintList(Graphics g) {
+        shapes.forEach(shape -> {
+            if (shape.getType() == Rectangle.class) {
+                g.setColor(shape.getForeground());
+                Rectangle r = (Rectangle) shape.getShape();
+                if (shape.getIsFilled()) {
+                    g.fillRect(r.x, r.y, r.width, r.height);
+                } else {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setStroke(new BasicStroke(shape.getStroke()));
+                    g2.drawRect(r.x, r.y, r.width, r.height);
+                }
+            } else if (shape.getType() ==  Ellipse2D.Double.class) {
+                Ellipse2D o = (Ellipse2D) shape.getShape();
+                g.setColor(shape.getForeground());
+                if (shape.getIsFilled()) {
+                    g.fillOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
+                } else {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setStroke(new BasicStroke(shape.getStroke()));
+                    g2.drawOval((int) o.getX(), (int) o.getY(), (int) o.getWidth(), (int) o.getHeight());
+                }
+            } else if (shape.getType() == Line2D.Double.class) {
+                Line2D l = (Line2D) shape.getShape();
+                g.setColor(shape.getForeground());
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setStroke(new BasicStroke(shape.getStroke()));
+                g2.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
+            }
+        });
     }
 
-    private void addOval(Ellipse2D oval, Color color) {
-        ColoredOval co = new ColoredOval(color, oval, isFilled, stroke);
-        //if (isFilled) co.isFilled = true;
-        shapes.add(co);
-        repaint();
-    }
-
-    private void addLine(Line2D line, Color color) {
-        ColoredLine cl = new ColoredLine(color, line, stroke);
-        shapes.add(cl);
+    private void addShape(Shape shape, Color color) {
+        ColoredShape<?> coloredShape = new ColoredShape<>(color, shape, isFilled, stroke);
+        shapes.add(coloredShape);
         repaint();
     }
 
@@ -141,74 +106,60 @@ class DrawingArea extends JPanel {
 
         public void mousePressed(MouseEvent e) {
             startPoint = e.getPoint();
-            switch (newShape) {
+            switch (DrawingArea.this.newShape) {
                 case "Rectangle":
-                    rectangle = new Rectangle();
+                    DrawingArea.this.shape = new Rectangle();
                     break;
                 case "Oval":
-                    oval = new Ellipse2D.Double();
+                    DrawingArea.this.shape = new Ellipse2D.Double();
                     break;
                 case "Line":
-                    line = new Line2D.Double();
+                    DrawingArea.this.shape = new Line2D.Double();
                     break;
                 case "Brush":
-                    if (dragging) return;
+                    DrawingArea.this.shape = new Line2D.Double();
+                    if (DrawingArea.this.dragging) return;
                     prevPoint = startPoint;
-                    dragging = true;
+                    DrawingArea.this.dragging = true;
             }
         }
 
         public void mouseDragged(MouseEvent e) {
-                int x = Math.min(startPoint.x, e.getX());
-                int y = Math.min(startPoint.y, e.getY());
-                int width = Math.abs(startPoint.x - e.getX());
-                int height = Math.abs(startPoint.y - e.getY());
+            int x = Math.min(startPoint.x, e.getX());
+            int y = Math.min(startPoint.y, e.getY());
+            int width = Math.abs(startPoint.x - e.getX());
+            int height = Math.abs(startPoint.y - e.getY());
 
-                switch (newShape) {
-                    case "Rectangle":
-                        rectangle.setBounds(x, y, width, height);
-                        break;
-                    case "Oval":
-                        oval.setFrame(x, y, width, height);
-                        break;
-                    case "Line":
-                        line.setLine(startPoint, e.getPoint());
-                        break;
-                    case "Brush":
-                        if (!dragging) return;
-                        Point point = e.getPoint();
+            if (DrawingArea.this.shape.getClass().equals(Rectangle.class)) {
+                ((Rectangle) DrawingArea.this.shape).setBounds(x, y, width, height);
+            } else if (DrawingArea.this.shape.getClass().equals(Ellipse2D.Double.class)) {
+                ((Ellipse2D.Double) DrawingArea.this.shape).setFrame(x, y, width, height);
+            } else if (DrawingArea.this.shape.getClass().equals(Line2D.Double.class)) {
+                ((Line2D.Double) DrawingArea.this.shape).setLine(startPoint, e.getPoint());
+            }
 
-                        line = new Line2D.Double(prevPoint, point);
-                        addLine(line, e.getComponent().getForeground());
-                        prevPoint = point;
-                        break;
-                }
+            if (DrawingArea.this.newShape.equals("Brush")) {
+                if (!dragging) return;
+                Point point = e.getPoint();
+
+                Line2D.Double line = new Line2D.Double(prevPoint, point);
+                DrawingArea.this.shape = new Line2D.Double(prevPoint, point);
+                addShape(line, e.getComponent().getForeground());
+                prevPoint = point;
+            }
+
             repaint();
         }
 
         public void mouseReleased(MouseEvent e) {
-            switch (newShape){
-                case "Rectangle":
-                    if (rectangle.width != 0 || rectangle.height != 0) {
-                        addRectangle(rectangle, e.getComponent().getForeground());
-                        rectangle = null;
-                    }
-                    break;
-                case "Oval":
-                    if (oval.getWidth() != 0 || oval.getHeight() != 0) {
-                        addOval(oval, e.getComponent().getForeground());
-                        oval = null;
-                    }
-                    break;
-                case "Line":
-                    if (line.getP1() != line.getP2()){
-                        addLine(line, e.getComponent().getForeground());
-                        line = null;
-                    }
-                    break;
-                case "Brush":
-                    dragging = false;
+            try {
+                addShape(DrawingArea.this.shape, e.getComponent().getForeground());
+            } catch (NullPointerException exception) {
+                System.out.println(exception.getMessage());
             }
+            DrawingArea.this.shape = null;
+
+            if (DrawingArea.this.newShape.equals("Brush")) DrawingArea.this.dragging = false;
         }
     }
 }
