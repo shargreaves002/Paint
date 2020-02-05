@@ -9,11 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Set;
 
 public class ButtonPanel extends JPanel {
     private DrawingArea drawingArea;
     JComboBox<Integer> stroke = new JComboBox<>();
     JComboBox<String> shape = new JComboBox<>();
+    JComboBox<Integer> layer = new JComboBox<>();
 
     private ActionListener toggleFill = (ActionEvent e) -> {
         drawingArea.toggleIsFilled();
@@ -43,10 +45,17 @@ public class ButtonPanel extends JPanel {
         for (int x = 1; x <= 50; x++) stroke.addItem(x - 1);
 
         stroke.addItemListener((ItemEvent e) -> {
-            int newStroke = (int) (stroke).getSelectedItem();
+            int newStroke = (int) stroke.getSelectedItem();
             drawingArea.updateStroke(newStroke);
         });
+        add(new JLabel("Stroke size:"));
         add(stroke);
+        add(new JLabel("Layer:"));
+        updateLayerList();
+        layer.addItemListener((ItemEvent e) -> drawingArea.updateLayer(layer.getSelectedIndex()));
+        add(layer);
+        add(createButton("New Layer"));
+        add(createButton("Delete Layer"));
     }
 
     private JButton createButton(String text) {
@@ -61,7 +70,29 @@ public class ButtonPanel extends JPanel {
             case "Change Color":
                 button.addActionListener((ActionEvent e) -> drawingArea.setForeground(JColorChooser.showDialog(null, "Choose Color", Color.BLACK)));
                 break;
+            case "New Layer":
+                button.addActionListener((ActionEvent e) -> {
+                    drawingArea.makeLayer();
+                    updateLayerList();
+                });
+                break;
+            case "Delete Layer":
+                button.addActionListener((ActionEvent e) -> {
+                    drawingArea.removeLayer();
+                    updateLayerList();
+                    drawingArea.repaint();
+                });
+                break;
         }
         return button;
+    }
+
+    private void updateLayerList(){
+        Set<Integer> layers = drawingArea.getLayers();
+        this.layer.removeAllItems();
+        for (int layer : layers) {
+            this.layer.addItem(layer);
+        }
+        layer.setSelectedIndex(layers.size() - 1);
     }
 }

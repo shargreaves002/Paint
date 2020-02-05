@@ -3,21 +3,24 @@ import shapes.ColoredShape;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
+import java.util.*;
 
 class DrawingArea extends JPanel {
-    private ArrayList<ColoredShape<? extends Shape>> shapes = new ArrayList<>();
+    private LinkedHashMap<Integer, LinkedList<ColoredShape<? extends Shape>>> shapes = new LinkedHashMap<>();
     private Shape shape;
     private boolean isFilled = false;
     private String newShape = "Rectangle";
     private boolean dragging = false;
     private Point prevPoint;
     private int stroke = 1;
+    private int layer = 0;
 
     DrawingArea(int x, int y) {
+        shapes.put(layer, new LinkedList<>());
         setBackground(Color.WHITE);
 
         MyMouseListener ml = new MyMouseListener();
@@ -59,7 +62,7 @@ class DrawingArea extends JPanel {
     }
 
     private void paintList(Graphics g) {
-        shapes.forEach(shape -> {
+        shapes.forEach((k, v) -> v.forEach(shape -> {
             if (shape.getType() == Rectangle.class) {
                 g.setColor(shape.getForeground());
                 Rectangle r = (Rectangle) shape.getShape();
@@ -87,18 +90,42 @@ class DrawingArea extends JPanel {
                 g2.setStroke(new BasicStroke(shape.getStroke()));
                 g2.drawLine((int) l.getX1(), (int) l.getY1(), (int) l.getX2(), (int) l.getY2());
             }
-        });
+        }));
     }
 
     private void addShape(Shape shape, Color color) {
         ColoredShape<?> coloredShape = new ColoredShape<>(color, shape, isFilled, stroke);
-        shapes.add(coloredShape);
+        shapes.get(layer).add(coloredShape);
         repaint();
     }
 
     void clear() {
-        shapes.clear();
+        shapes.get(layer).clear();
         repaint();
+    }
+    
+    void makeLayer() {
+        int newLayer = Collections.max(shapes.keySet()) + 1;
+        shapes.put(newLayer, new LinkedList<>());
+        updateLayer(newLayer);
+    }
+
+    Set<Integer> getLayers() {
+        return shapes.keySet();
+    }
+
+    void updateLayer(int layer) {
+        this.layer = layer;
+    }
+
+    void removeLayer() {
+        if (this.layer > 0) {
+            int layerToRemove = layer;
+            this.layer -= 1;
+            this.shapes.remove(layerToRemove);
+        } else {
+            JOptionPane.showMessageDialog(null, "You cannot delete the last layer.", "Error deleting layer", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     class MyMouseListener extends MouseInputAdapter {
@@ -155,7 +182,7 @@ class DrawingArea extends JPanel {
             try {
                 addShape(DrawingArea.this.shape, e.getComponent().getForeground());
             } catch (NullPointerException exception) {
-                System.out.println(exception.getMessage());
+                exception.printStackTrace();
             }
             DrawingArea.this.shape = null;
 

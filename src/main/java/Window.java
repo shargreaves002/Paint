@@ -4,11 +4,19 @@ import java.awt.event.*;
 
 public class Window extends JFrame implements ActionListener, WindowListener {
     private JTabbedPane pane = new JTabbedPane();
+    private JTextField name = new JTextField();
+    private JNumberField x = new JNumberField(500);
+    private JNumberField y = new JNumberField(500);
+    private Object[] message = {
+            "Name:", name,
+            "X:", x,
+            "Y:", y
+    };
 
     Window(){
         super("Doodle Board");
         addWindowListener(this);
-        setSize(new Dimension((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth(), ((int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() - 75)));
+        setPreferredSize(new Dimension((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth(), ((int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() - 75)));
         setLayout(new BorderLayout());
         setResizable(true);
         setLocationRelativeTo(null);
@@ -22,7 +30,8 @@ public class Window extends JFrame implements ActionListener, WindowListener {
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-        makeMenuBar();
+        // makeMenuBar();
+        setJMenuBar(MenuFactory.makeMenuBar(this));
 
         //set up the drawing pane
         this.add(pane);
@@ -30,86 +39,43 @@ public class Window extends JFrame implements ActionListener, WindowListener {
         pack();
     }
 
-    private void makeMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-        JMenu file = makeFileMenu();
-        JMenu edit = makeEditMenu();
-
-        menuBar.add(file);
-        menuBar.add(edit);
-        this.setJMenuBar(menuBar);
-    }
-
-    private JMenu makeEditMenu() {
-        JMenu edit = new JMenu("Edit");
-
-        //change background color button
-        JMenuItem changeBackground = new JMenuItem("Change Background");
-        changeBackground.setActionCommand("setbg");
-        changeBackground.addActionListener(this);
-
-        edit.add(changeBackground);
-        return edit;
-    }
-
-    private JMenu makeFileMenu() {
-        JMenu file = new JMenu("File");
-        //new canvas button
-        JMenuItem newCanvas = new JMenuItem("New Canvas", KeyEvent.VK_T);
-        newCanvas.addActionListener((ActionEvent e) -> makeCanvas());
-        newCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK));
-        newCanvas.getAccessibleContext().setAccessibleDescription("New Canvas");
-
-        //remove canvas button
-        JMenuItem removeCanvas = new JMenuItem("Delete Canvas", KeyEvent.VK_F);
-        removeCanvas.addActionListener((ActionEvent e) -> removeCanvas());
-        removeCanvas.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK));
-        removeCanvas.getAccessibleContext().setAccessibleDescription("Delete Canvas");
-
-        //next button
-        JMenuItem next = new JMenuItem("Next Canvas");
-        next.setActionCommand("next");
-        next.addActionListener(this);
-
-        //previous button
-        JMenuItem previous = new JMenuItem("Previous Canvas");
-        previous.setActionCommand("previous");
-        previous.addActionListener(this);
-
-        file.add(newCanvas);
-        file.add(removeCanvas);
-        file.add(next);
-        file.add(previous);
-
-        return file;
-    }
-
-    private void makeCanvas(){
-        final String name = JOptionPane.showInputDialog("What would you like to name the new canvas?");
-        boolean isThere = false;
-        for (int i=0; i<pane.getTabCount(); i++){
-            if (pane.getTitleAt(i).equals(name)) isThere = true;
+    void makeCanvas(){
+        // final String name = JOptionPane.showInputDialog("What would you like to name the new canvas?");
+        int makeCanvas = JOptionPane.showConfirmDialog(null, message, "Create New Canvas", JOptionPane.OK_CANCEL_OPTION);
+        if (makeCanvas == JOptionPane.OK_OPTION) {
+            boolean exists = false;
+            for (int i = 0; i < pane.getTabCount(); i++) {
+                if (pane.getTitleAt(i).equals(name.getText())) exists = true;
+            }
+            if (!name.getText().equals("") && !exists && x.getIsValid() && y.getIsValid()) {
+                Canvas canvas = new Canvas(name.getText(), x.getInt(), y.getInt());
+                pane.addTab(name.getText(), canvas);
+                pane.setSelectedIndex(pane.getTabCount() - 1);
+                pack();
+            } else {
+                int choice;
+                if (!x.getIsValid() || !y.getIsValid()) {
+                    choice = JOptionPane.showConfirmDialog(null, "Please enter dimensions in numeric form.", "Error", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+                } else {
+                    if (!exists) {
+                        choice = JOptionPane.showConfirmDialog(null, "Please enter a name.", "Error", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        choice = JOptionPane.showConfirmDialog(null, "A canvas of that name already exists. Please enter another name.", "Error", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                if (choice == JOptionPane.OK_OPTION) makeCanvas();
+            }
         }
-        if (name != null && !name.equals("") && !isThere){
-            Canvas canvas = new Canvas(name, 500, 500);
-            pane.addTab(name, canvas);
-            pane.setSelectedIndex(pane.getTabCount() - 1);
-        } else if (name != null && !isThere){
-            int choice = JOptionPane.showConfirmDialog(null,"Please enter a name.", "Error",  JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-            if (choice == JOptionPane.OK_OPTION) makeCanvas();
-        } else if (isThere) {
-            int choice = JOptionPane.showConfirmDialog(null,"A canvas of that name already exists. Please enter another name.", "Error",  JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
-            if (choice == JOptionPane.OK_OPTION) makeCanvas();
-        }
+        setMessage();
     }
 
     private void createStartingCanvas() {
-        Canvas canvas = new Canvas("New Art", 200, 200);
+        Canvas canvas = new Canvas("New Art", 500, 500);
         pane.addTab(canvas.getName(), canvas);
         pane.setSelectedIndex(0);
     }
 
-    private void removeCanvas() {
+    void removeCanvas() {
         if (pane.getTabCount() > 1) {
             int choice = JOptionPane.showConfirmDialog(null, "Are you sure you would like to delete this canvas?", "Are you sure?", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
             if (choice == JOptionPane.OK_OPTION) pane.remove(pane.getSelectedIndex());
@@ -120,6 +86,12 @@ public class Window extends JFrame implements ActionListener, WindowListener {
 
     private void changeBackground(Color color){
         ((Canvas) pane.getComponentAt(pane.getSelectedIndex())).getDrawingArea().setBackground(color);
+    }
+
+    private void setMessage() {
+        name.setText("");
+        x.setInt(500);
+        y.setInt(500);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -146,7 +118,7 @@ public class Window extends JFrame implements ActionListener, WindowListener {
     }
 
     public void windowOpened(WindowEvent e) {
-
+        pack();
     }
     public void windowClosing(WindowEvent e) {
         dispose();
