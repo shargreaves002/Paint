@@ -1,26 +1,26 @@
+import org.apache.commons.collections4.map.ListOrderedMap;
 import shapes.ColoredShape;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.*;
 
 class DrawingArea extends JPanel {
-    private LinkedHashMap<Integer, LinkedList<ColoredShape<? extends Shape>>> shapes = new LinkedHashMap<>();
+    private ListOrderedMap<Layer, LinkedList<ColoredShape<? extends Shape>>> shapes = new ListOrderedMap<>();
     private Shape shape;
     private boolean isFilled = false;
     private String newShape = "Rectangle";
     private boolean dragging = false;
     private Point prevPoint;
     private int stroke = 1;
-    private int layer = 0;
+    private int currentLayerIndex = 0;
 
     DrawingArea(int x, int y) {
-        shapes.put(layer, new LinkedList<>());
+        makeLayer("Default Layer");
         setBackground(Color.WHITE);
 
         MyMouseListener ml = new MyMouseListener();
@@ -95,37 +95,79 @@ class DrawingArea extends JPanel {
 
     private void addShape(Shape shape, Color color) {
         ColoredShape<?> coloredShape = new ColoredShape<>(color, shape, isFilled, stroke);
-        shapes.get(layer).add(coloredShape);
+        shapes.get(getCurrentLayer()).add(coloredShape);
         repaint();
     }
 
     void clear() {
-        shapes.get(layer).clear();
+        shapes.get(getCurrentLayer()).clear();
         repaint();
     }
     
-    void makeLayer() {
-        int newLayer = Collections.max(shapes.keySet()) + 1;
-        shapes.put(newLayer, new LinkedList<>());
-        updateLayer(newLayer);
+    void makeLayer(String name) {
+        int newLayerIndex = shapes.keySet().size();
+        shapes.put(newLayerIndex, new Layer(newLayerIndex, name), new LinkedList<>());
+        updateIndices();
     }
 
-    Set<Integer> getLayers() {
-        return shapes.keySet();
+    LinkedList<String> getLayerNames() {
+        LinkedList<String> layerNames = new LinkedList<>();
+        shapes.forEach((k, v) -> layerNames.add(k.getName()));
+        return layerNames;
+    }
+
+    private Layer getCurrentLayer(){
+        return this.shapes.get(currentLayerIndex);
     }
 
     void updateLayer(int layer) {
-        this.layer = layer;
+        this.currentLayerIndex = layer;
     }
 
     void removeLayer() {
-        if (this.layer > 0) {
-            int layerToRemove = layer;
-            this.layer -= 1;
-            this.shapes.remove(layerToRemove);
+        if (this.shapes.keySet().size() != 1) {
+            int layerToRemove = currentLayerIndex;
+            this.currentLayerIndex -= 1;
+            this.shapes.remove(shapes.get(layerToRemove));
+            int indexCount = -1;
+            for (Layer layer : this.shapes.keySet()) {
+                layer.setIndex(++indexCount);
+            }
+            repaint();
+            updateIndices();
         } else {
             JOptionPane.showMessageDialog(null, "You cannot delete the last layer.", "Error deleting layer", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public void moveLayerUp() {
+        if (currentLayerIndex >= shapes.keySet().size() - 1) {
+            JOptionPane.showMessageDialog(null, "Error moving layer up: this is the top layer.");
+        } else {
+            // swapLayers(currentLayerIndex);
+            this.shapes.put(Math.min(currentLayerIndex + 2, shapes.keySet().size()), this.shapes.get(currentLayerIndex), this.shapes.getValue(currentLayerIndex));
+            updateIndices();
+            repaint();
+        }
+    }
+
+    public void moveLayerDown() {
+        if (currentLayerIndex == 0) {
+            JOptionPane.showMessageDialog(null, "Error moving layer down: this is the bottom layer.");
+        } else {
+            this.shapes.put(Math.min(currentLayerIndex + 1, shapes.keySet().size()), this.shapes.get(currentLayerIndex - 1), this.shapes.getValue(currentLayerIndex - 1));
+            updateIndices();
+            repaint();
+        }
+    }
+
+    private void updateIndices() {
+        int index = 0;
+        for (Layer layer : this.shapes.asList()) {
+            layer.setIndex(index);
+            index++;
+        }
+        updateLayer(index - 1);
     }
 
     class MyMouseListener extends MouseInputAdapter {

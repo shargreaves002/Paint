@@ -1,3 +1,5 @@
+package util;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -10,7 +12,7 @@ import java.util.*;
 public class JNumberField extends JTextField {
     boolean valid = false;
 
-    /** constructor for a JNumberField */
+    /** constructor for a util.JNumberField */
     public JNumberField() {
         enableEvents(AWTEvent.KEY_EVENT_MASK);
     }
@@ -22,27 +24,27 @@ public class JNumberField extends JTextField {
         setValid(true);
     }
 
-    /** Gets a double-value from the JNumberField. */
+    /** Gets a double-value from the util.JNumberField. */
     public double getDouble() {
         return getText().equals("") ? 0 : Double.parseDouble(getText());
     }
 
-    /** Gets a float-value from the JNumberField. */
+    /** Gets a float-value from the util.JNumberField. */
     public float getFloat() {
         return getText().equals("") ? 0 : Float.parseFloat(getText());
     }
 
-    /** Gets an int-value from the JNumberField. */
+    /** Gets an int-value from the util.JNumberField. */
     public int getInt() {
         return getText().equals("") ? 0 : Integer.parseInt(getText());
     }
 
-    /** Gets a long-value from the JNumberField. */
+    /** Gets a long-value from the util.JNumberField. */
     public long getLong() {
         return getText().equals("") ? 0 : Long.parseLong(getText());
     }
 
-    /** Checks whether the JNumberField contains a valid numeric value. */
+    /** Checks whether the util.JNumberField contains a valid numeric value. */
     public boolean isNumeric() {
         final String Digits     = "(\\p{Digit}+)";
         final String HexDigits  = "(\\p{XDigit}+)";
@@ -86,37 +88,37 @@ public class JNumberField extends JTextField {
         return java.util.regex.Pattern.matches(fpRegex, getText());
     }
 
-    /** Sets a double-value into the JNumberField. */
+    /** Sets a double-value into the util.JNumberField. */
     public void setDouble(double d) {
         setText(String.valueOf(d));
     }
 
-    /** Sets a double-value with N digits into the JNumberField. */
+    /** Sets a double-value with N digits into the util.JNumberField. */
     public void setDouble(double d, int N) {
         setText(String.format("%." + N + "f", d));
     }
 
-    /** Sets a float-value into the JNumberField. */
+    /** Sets a float-value into the util.JNumberField. */
     public void setFloat(float f) {
         setText(String.valueOf(f));
     }
 
-    /** Sets a float-value with N digits into the JNumberField. */
+    /** Sets a float-value with N digits into the util.JNumberField. */
     public void setFloat(float f, int N) {
         setText(String.format("%." + N + "f", f));
     }
 
-    /** Sets an int-value into the JNumberField. */
+    /** Sets an int-value into the util.JNumberField. */
     public void setInt(int i) {
         setText(String.valueOf(i));
     }
 
-    /** Sets a long-value into the JNumberField. */
+    /** Sets a long-value into the util.JNumberField. */
     public void setLong(long l) {
         setText(String.valueOf(l));
     }
 
-    /** Clears the JNumberField */
+    /** Clears the util.JNumberField */
     public void clear() {
         setText("");
     }
